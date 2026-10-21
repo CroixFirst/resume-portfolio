@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Николай Галкин - PHP-разработчик</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --accent:#20c997;
+      --accent-dark:#17a67c;
+      --accent-soft:rgba(32,201,151,.10);
+      --sidebar:#111418;
+      --nav-logo:#343a40;
+      --heading:#212529;
+      --heading-alt:#252b33;
+      --text:#4c4d4d;
+      --muted:#7a7a7a;
+      --line:#e9ecef;
+      --soft:#f8f9fa;
+      --card:#fff;
+      --overlay-border:rgba(250,250,250,.15);
+      --wm:rgba(33,37,41,.05);
+    }
+    *{box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{
+      font-family:'Poppins',sans-serif;
+      color:var(--text);
+      background:var(--card);
+      margin:0;
+      overflow-x:hidden;
+      font-weight:400;
+    }
+    body.modal-open{overflow:hidden;}
+    section{scroll-margin-top:20px;}
+    @media(max-width:1279px){ section{scroll-margin-top:80px;} }
+
+    .bg-img-main{
+      position:fixed;
+      inset:0;
+      z-index:-1;
+      width:100%;
+      height:100vh;
+      background-color:#0c0e11;
+      background-image:url('/images/pc.png');
+      background-position:50%;
+      background-repeat:no-repeat;
+      background-size:cover;
+    }
+
+    .shell{display:block;}
+    .main{min-width:0;}
+    @media(min-width:1280px){
+      .main{margin-left:235px;}
+    }
+
+    .sidebar{
+      position:fixed;top:0;left:0;bottom:0;width:235px;z-index:60;
+      background:var(--sidebar);color:#fff;
+      display:flex;flex-direction:column;align-items:center;
+      padding:30px 18px;
+      transform:translateX(-100%);
+      transition:transform .35s cubic-bezier(.2,.7,.2,1);
+    }
+    .sidebar.open{transform:translateX(0);}
+    @media(min-width:1280px){ .sidebar{transform:none;} }
+
+    .avatar{
+      width:110px;height:110px;border-radius:50%;
+      border:3px solid var(--accent);
+      overflow:hidden;
+      display:block;
+      box-shadow:0 0 0 5px rgba(32,201,151,.12);
+    }
+    .avatar img{
+      width:100%;height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .side-name{margin-top:16px;font-weight:600;font-size:17px;color:var(--heading-light,#dee3e4);}
+    .side-menu{margin-top:26px;width:100%;display:flex;flex-direction:column;gap:2px;}
+    .side-menu a{
+      display:flex;align-items:center;gap:10px;
+      padding:11px 14px;border-radius:10px;
+      color:#aab1b8;font-size:14px;font-weight:400;
+      transition:.2s ease;text-decoration:none;
+    }
+    .side-menu a .dot{width:6px;height:6px;border-radius:50%;background:#56606a;transition:.2s;}
+    .side-menu a:hover{color:#fff;background:rgba(255,255,255,.05);}
+    .side-menu a.active{color:var(--accent);background:var(--accent-soft);font-weight:600;}
+    .side-menu a.active .dot{background:var(--accent);}
+    .side-social{margin-top:auto;display:flex;gap:10px;padding-top:22px;}
+    .side-social a{
+      width:36px;height:36px;border-radius:50%;
+      border:1px solid rgba(255,255,255,.12);
+      display:flex;align-items:center;justify-content:center;color:#aab1b8;transition:.2s;
+    }
+    .side-social a:hover{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+    .burger{
+      position:fixed;top:16px;left:16px;z-index:70;
+      width:46px;height:46px;border-radius:12px;
+      background:var(--sidebar);color:#fff;border:none;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 8px 24px rgba(0,0,0,.25);
+    }
+    @media(min-width:1280px){ .burger{display:none;} }
+    .overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:55;
+      opacity:0;visibility:hidden;transition:.3s;
+    }
+    .overlay.show{opacity:1;visibility:visible;}
+    @media(min-width:1280px){ .overlay{display:none;} }
+
+    .btn{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:13px 30px;border-radius:999px;
+      font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;
+      transition:.25s ease;border:2px solid transparent;
+    }
+    .btn-solid{background:var(--accent);color:#fff;}
+    .btn-solid:hover{background:var(--accent-dark);transform:translateY(-2px);box-shadow:0 14px 30px rgba(32,201,151,.3);}
+    .btn-outline{border-color:var(--accent);color:var(--accent);background:transparent;}
+    .btn-outline:hover{background:var(--accent);color:#fff;transform:translateY(-2px);}
+
+    .sec{
+      position:relative;
+      padding:90px 0;
+      overflow:hidden;
+      background:var(--card);
+    }
+    .sec.soft{background:var(--soft);}
+    .wrap{max-width:1120px;margin:0 auto;padding:0 24px;position:relative;z-index:2;}
+    .watermark{
+      position:absolute;top:46px;left:0;right:0;z-index:1;
+      text-align:center;font-weight:800;letter-spacing:4px;
+      font-size:clamp(48px,11vw,150px);line-height:1;
+      color:var(--wm);text-transform:uppercase;user-select:none;pointer-events:none;
+      white-space:nowrap;
+    }
+    .sec-head{position:relative;z-index:2;text-align:center;margin-bottom:54px;}
+    .sec-title{font-size:26px;font-weight:600;display:inline-block;position:relative;padding-bottom:14px;color:var(--heading);}
+    .sec-title::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:54px;height:3px;border-radius:3px;background:var(--accent);}
+
+    .hero{
+      position:relative;
+      min-height:100vh;
+      display:flex;align-items:center;
+      color:#fff;overflow:hidden;
+      background:transparent;
+    }
+    .hero::before{
+      content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+      background:linear-gradient(180deg,
+        rgba(10,12,15,.35) 0%,
+        rgba(10,12,15,.55) 55%,
+        rgba(10,12,15,.80) 100%);
+    }
+    .hero-inner{
+      position:relative;z-index:2;
+      max-width:1120px;margin:0 auto;
+      padding:120px 24px 80px;width:100%;
+      text-align:center;
+    }
+    .hero-welcome{color:var(--accent);font-weight:600;letter-spacing:1px;margin:0 0 14px;font-size:clamp(18px,2.4vw,24px);}
+    .hero-h1{font-size:clamp(38px,7vw,72px);font-weight:800;line-height:1.05;margin:0;color:#fff;}
+    .hero-h1 .typed{color:var(--accent);}
+    .caret{display:inline-block;width:3px;height:.9em;background:var(--accent);margin-left:4px;vertical-align:-2px;animation:blink 1s steps(1) infinite;}
+    @keyframes blink{50%{opacity:0;}}
+    .hero-sub{margin-top:18px;color:#c4c9ce;font-size:clamp(15px,2vw,19px);font-weight:300;}
+    .hero-actions{
+      margin-top:34px;
+      display:flex;flex-wrap:wrap;gap:14px;
+      justify-content:center;
+    }
+
+    .about-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:28px;
+      align-items:start;
+    }
+    .about-copy{ text-align:center; }
+    .about-info{ text-align:center; }
+    .about-lead{
+      font-size:clamp(24px,4vw,30px);
+      font-weight:700;
+      line-height:1.2;
+      margin:0 0 16px;
+      color:var(--heading);
+      letter-spacing:normal;
+    }
+    .about-lead em{ color:var(--accent); font-style:normal; }
+    .about-p{
+      color:var(--text);
+      font-size:16px;
+      line-height:1.5;
+      margin:0 0 16px;
+      font-weight:400;
+      letter-spacing:normal;
+    }
+    .ai{
+      padding:10px 0;
+      border-bottom:1px solid var(--line);
+      font-size:14px;
+      line-height:1.5;
+    }
+    .ai .k{ font-weight:600; color:var(--heading); }
+    .ai .v{ font-weight:400; color:var(--text); }
+    .ai a.v{ color:var(--accent); text-decoration:none; }
+    .ai a.v:hover{ text-decoration:underline; }
+    .about-cta{ margin-top:22px; }
+    @media(min-width:900px){
+      .about-grid{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:24px 40px;
+      }
+      .about-copy{ grid-column:span 2; text-align:left; }
+      .about-info{ grid-column:span 1; text-align:left; }
+    }
+
+    .svc-grid{display:grid;gap:36px 40px;grid-template-columns:1fr;}
+    @media(min-width:760px){ .svc-grid{grid-template-columns:1fr 1fr;} }
+    .svc{
+      display:flex;align-items:flex-start;gap:22px;
+      background:transparent;border:none;border-radius:0;padding:0;
+      transition:none;
+    }
+    .svc-ico{
+      flex:0 0 auto;width:64px;height:64px;border-radius:16px;
+      background:#fff;color:var(--accent);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 2px 8px rgba(17,20,24,.06);
+      transition:transform .25s ease,box-shadow .25s ease;
+    }
+    .svc-ico svg{ stroke-width:1.5; opacity:.85; }
+    .svc:hover .svc-ico{transform:translateY(-2px);box-shadow:0 4px 12px rgba(17,20,24,.08);}
+    .svc h3{font-size:18px;font-weight:700;margin:0 0 8px;color:var(--heading);}
+    .svc p{margin:0;color:var(--text);font-size:15px;line-height:1.6;font-weight:400;}
+
+    .res-grid{display:grid;gap:48px;grid-template-columns:1fr;}
+    @media(min-width:900px){ .res-grid{grid-template-columns:1fr 1fr;} }
+    .res-col h3{font-size:20px;font-weight:600;margin:0 0 26px;color:var(--heading);}
+    .tl{position:relative;padding-left:26px;}
+    .tl::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--line);}
+    .tl-item{position:relative;margin-bottom:26px;}
+    .tl-item::before{content:"";position:absolute;left:-26px;top:4px;width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--accent);}
+    .tl-pill{display:inline-block;background:var(--accent);color:#fff;font-size:12px;font-weight:600;padding:4px 12px;border-radius:999px;margin-bottom:8px;}
+    .tl-item h4{margin:0 0 4px;font-size:16px;font-weight:600;color:var(--heading);}
+    .tl-item .org{color:var(--accent-dark);font-size:13px;font-weight:600;margin-bottom:6px;}
+    .tl-item p{margin:0;color:var(--text);font-size:13.5px;line-height:1.7;font-weight:300;}
+    .skill{margin-bottom:18px;}
+    .skill-top{display:flex;justify-content:space-between;font-size:14px;font-weight:400;margin-bottom:8px;color:var(--heading);}
+    .skill-top .pct{color:var(--muted);}
+    .bar{height:8px;border-radius:999px;background:var(--line);overflow:hidden;}
+    .bar-fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent-dark));transition:width 1.1s cubic-bezier(.2,.7,.2,1);}
+    .res-cta{text-align:center;margin-top:40px;}
+
+    .pf-grid{display:grid;gap:24px;grid-template-columns:1fr;}
+    @media(min-width:760px){ .pf-grid{grid-template-columns:1fr 1fr;} }
+    .pcard{
+      position:relative;background:var(--card);border:1px solid var(--line);border-radius:18px;
+      overflow:hidden;cursor:pointer;text-align:left;font:inherit;color:inherit;padding:0;
+      transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+    }
+    .pcard:hover,.pcard:focus-visible{transform:translateY(-4px);box-shadow:0 20px 45px rgba(0,0,0,.08);border-color:rgba(32,201,151,.45);outline:none;}
+    .shot{position:relative;aspect-ratio:16/10;background:linear-gradient(135deg,#eef0f2,#e3e6ea);overflow:hidden;border-bottom:1px solid var(--line);}
+    .shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s ease;}
+    .pcard:hover .shot img{transform:scale(1.05);}
+    .shot .chrome{position:absolute;inset:14px 14px auto 14px;height:30px;border-radius:9px 9px 0 0;background:#fff;border:1px solid #e2e2e2;border-bottom:none;display:flex;align-items:center;gap:6px;padding:0 12px;z-index:2;}
+    .shot .chrome i{width:9px;height:9px;border-radius:50%;background:#d6d6d6;}
+    .shot .chrome .url{margin-left:8px;flex:1;height:14px;border-radius:7px;background:#f0f0f0;display:flex;align-items:center;padding:0 10px;font-size:10px;color:#9a9a9a;font-family:ui-monospace,monospace;overflow:hidden;white-space:nowrap;}
+    .shot .body{position:absolute;inset:58px 14px 14px 14px;border-radius:0 0 9px 9px;background:#fff;border:1px solid #e2e2e2;border-top:none;padding:14px;display:flex;flex-direction:column;gap:10px;z-index:1;}
+    .shot .ln{height:10px;border-radius:6px;background:#ececec;}
+    .shot .ln.w1{width:45%;} .shot .ln.w2{width:80%;} .shot .ln.w3{width:60%;}
+    .shot .blocks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:auto;}
+    .shot .blocks span{height:34px;border-radius:8px;background:#f1f1f1;}
+    .shot .accent-ln{height:10px;width:30%;border-radius:6px;background:rgba(32,201,151,.5);}
+    .pcard-body{padding:20px 22px 22px;}
+    .pcard-body h3{margin:0 0 8px;font-size:18px;font-weight:600;color:var(--heading);}
+    .tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+    .tag{
+      font-size:11px;font-weight:600;
+      color:#5b6470;background:#f1f3f5;border:1px solid #e6e9ec;
+      padding:3px 10px;border-radius:999px;
+    }
+    .pcard-cta{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--accent);transition:gap .2s;}
+    .case-url{margin:0 0 16px;color:var(--text);line-height:1.6;font-weight:400;font-size:14px;}
+    .case-url a{color:inherit;text-decoration:underline;text-underline-offset:3px;}
+    .case-url a:hover{color:var(--accent-dark);}
+    .pcard:hover .pcard-cta{gap:10px;}
+    .case-detail{display:none;}
+
+    .shot-dash{
+      background:linear-gradient(160deg,#f8fafc 0%,#eef2f6 100%);
+      display:flex;flex-direction:column;padding:16px 18px;gap:12px;
+    }
+    .dash-top{display:flex;align-items:baseline;justify-content:space-between;}
+    .dash-brand{font-size:14px;font-weight:700;color:var(--heading);}
+    .dash-url{font-family:ui-monospace,monospace;font-size:10px;color:#9aa1a8;text-transform:uppercase;letter-spacing:.5px;}
+    .dash-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+    .kp{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;box-shadow:0 2px 6px rgba(17,20,24,.04);}
+    .kp b{display:block;font-size:15px;font-weight:700;color:var(--accent-dark);line-height:1.1;}
+    .kp span{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;}
+    .dash-chart{flex:1;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px 8px;display:flex;flex-direction:column;min-height:0;}
+    .dash-chart svg{width:100%;height:100%;flex:1;min-height:0;}
+    .dash-chart line{stroke:#ececec;stroke-width:1;}
+    .bars rect:nth-child(odd){fill:rgba(32,201,151,.18);}
+    .bars rect:nth-child(even){fill:var(--accent);}
+    .trend{fill:none;stroke:#f59e0b;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+    .dash-legend{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;}
+    .dash-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:-1px;}
+    .lg-cost{background:rgba(32,201,151,.18);} .lg-profit{background:var(--accent);} .lg-trend{background:#f59e0b;}
+
+    .modal-overlay{
+      position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.7);
+      display:flex;align-items:center;justify-content:center;padding:24px;
+      opacity:0;visibility:hidden;transition:opacity .25s ease,visibility .25s ease;
+    }
+    .modal-overlay.show{opacity:1;visibility:visible;}
+    .modal{
+      position:relative;width:min(1400px,95vw);max-height:92vh;
+      background:var(--card);border:1px solid var(--line);border-radius:18px;
+      box-shadow:0 40px 120px rgba(0,0,0,.4);
+      transform:translateY(16px) scale(.98);
+      transition:transform .3s cubic-bezier(.2,.7,.2,1);
+      overflow:hidden;display:grid;grid-template-columns:1fr;
+    }
+    .modal-overlay.show .modal{transform:none;}
+    .modal-close{
+      position:absolute;top:14px;right:14px;z-index:5;
+      width:40px;height:40px;border-radius:50%;border:1px solid var(--line);
+      background:rgba(255,255,255,.92);color:var(--heading);cursor:pointer;
+      display:flex;align-items:center;justify-content:center;transition:.2s;backdrop-filter:blur(6px);
+    }
+    .modal-close:hover{background:var(--accent);border-color:var(--accent);color:#fff;transform:rotate(90deg);}
+    .modal-shot{
+      position:relative;aspect-ratio:16/9;
+      background:transparent;
+      overflow:hidden;border-bottom:1px solid var(--line);
+    }
+    .modal-shot img{
+      position:absolute;inset:0;width:100%;height:100%;
+      object-fit:contain;
+    }
+    .modal-shot:has(.dash-chart){
+      background:linear-gradient(160deg,#f8fafc,#eef2f6);
+      padding:14px;
+    }
+    .modal-shot .chrome{position:absolute;inset:16px 16px auto 16px;height:32px;border-radius:9px 9px 0 0;background:#fff;border:1px solid #e2e2e2;border-bottom:none;display:flex;align-items:center;gap:6px;padding:0 12px;z-index:2;}
+    .modal-shot .chrome i{width:9px;height:9px;border-radius:50%;background:#d6d6d6;}
+    .modal-shot .chrome .url{margin-left:8px;flex:1;height:15px;border-radius:7px;background:#f0f0f0;display:flex;align-items:center;padding:0 10px;font-size:11px;color:#9a9a9a;font-family:ui-monospace,monospace;}
+    .modal-shot .body{position:absolute;inset:62px 16px 16px 16px;border-radius:0 0 9px 9px;background:#fff;border:1px solid #e2e2e2;border-top:none;padding:16px;display:flex;flex-direction:column;gap:11px;z-index:1;}
+    .modal-content{padding:22px 24px 26px;overflow-y:auto;}
+    .modal-content h3{margin:0 0 8px;font-size:22px;font-weight:700;color:var(--heading);}
+    .modal-content .lead{margin:0 0 16px;color:var(--text);line-height:1.6;font-weight:400;font-size:14px;}
+    .modal-h{
+      font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+      color:#8a929c;margin:0 0 8px;
+    }
+    .modal-list{margin:0 0 14px;padding:0;list-style:none;display:grid;gap:6px;}
+    .modal-list li{position:relative;padding-left:18px;color:var(--text);font-size:13px;line-height:1.5;font-weight:400;}
+    .modal-list li::before{content:"";position:absolute;left:0;top:6px;width:6px;height:6px;border-radius:50%;background:var(--accent);}
+    .modal-tags{display:flex;flex-wrap:wrap;gap:6px;}
+    .modal-foot{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;}
+    .modal-foot .note{font-size:12px;color:var(--muted);font-weight:400;}
+    @media(min-width:820px){
+      .modal{grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);}
+      .modal-shot{aspect-ratio:auto;height:100%;border-bottom:none;}
+      .modal-content{max-height:92vh;}
+    }
+
+    .more-intro{
+      max-width:640px;margin:-24px auto 36px;text-align:center;
+      color:var(--text);font-size:15px;line-height:1.6;font-weight:400;
+    }
+    .more-list{
+      display:grid;gap:14px;grid-template-columns:1fr;
+      margin:0 auto;
+    }
+    @media(min-width:760px){ .more-list{grid-template-columns:1fr 1fr;} }
+    .mi{
+      display:flex;flex-direction:column;gap:4px;
+      padding:18px 20px;border-radius:14px;
+      background:var(--soft);border:1px solid var(--line);
+      transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+    }
+    .mi:hover{transform:translateY(-2px);border-color:rgba(32,201,151,.35);box-shadow:0 10px 24px rgba(17,20,24,.05);}
+    .mi b{font-size:15px;font-weight:600;color:var(--heading);}
+    .mi span{font-size:13px;color:var(--text);line-height:1.5;font-weight:400;}
+
+    #contact{ background:#fff; }
+    #contact .watermark{ color:var(--wm); }
+    #contact .sec-title{ color:var(--heading); }
+    .ct-grid{ display:grid; gap:48px; grid-template-columns:1fr; align-items:start; }
+    @media(min-width:900px){ .ct-grid{ grid-template-columns:1fr 1.1fr; gap:64px; } }
+    .ct-side{ display:flex; flex-direction:column; align-items:flex-start; gap:18px; }
+    @media(max-width:900px){
+      .ct-side { align-items: center; }
+      #contact .ct-desc { max-width: 760px; text-align: center; }
+      #contact .sec-head { margin-bottom: 24px; }
+    }
+    .ct-desc{ margin:0; font-size:18px; line-height:1.6; color:var(--text); font-weight:400; max-width:420px; }
+    .ct-dot{ width:8px; height:8px; border-radius:50%; background:#34d399; box-shadow:0 0 0 4px rgba(52,211,153,.18); }
+    .ct-links{ display:flex; flex-direction:column; }
+    .ct-link{
+      display:flex; align-items:center; justify-content:space-between; gap:20px;
+      padding:20px 0; text-decoration:none; color:var(--heading);
+      border-bottom:1px solid var(--line);
+      transition:border-color .2s ease;
+    }
+    .ct-link:first-child{ padding-top:0; }
+    .ct-link:hover{ border-bottom-color:var(--accent); }
+    .ct-meta{ display:flex; flex-direction:column; gap:6px; min-width:0; }
+    .ct-lbl{
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+      font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted);
+    }
+    .ct-val{ font-size:20px; font-weight:600; color:var(--heading); word-break:break-word; transition:color .2s ease; }
+    .ct-link:hover .ct-val{ color:var(--accent-dark); }
+    .ct-arrow{ width:20px; height:20px; flex:0 0 auto; color:#c0c4cc; transition:transform .2s ease,color .2s ease; }
+    .ct-link:hover .ct-arrow{ transform:translateX(4px); color:var(--accent); }
+
+    .foot{background:var(--sidebar);color:#9aa1a8;padding:26px 24px;text-align:center;font-size:13px;font-weight:300;}
+    .foot a{color:var(--accent);text-decoration:none;}
+
+    .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease;}
+    .reveal.in{opacity:1;transform:none;}
+    @media(prefers-reduced-motion:reduce){
+      .reveal{opacity:1;transform:none;transition:none;}
+      .caret{animation:none;}
+    }
+
+
+.sk-cats{display:grid;gap:26px;}
+.sk-cat h4{
+  font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;
+  color:var(--muted);margin:0 0 12px;
+}
+.sk-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.sk-chip{
+  font-size:13px;font-weight:400;color:var(--heading);
+  background:var(--soft);border:1px solid var(--line);
+  padding:7px 14px;border-radius:999px;
+  transition:transform .18s ease,border-color .18s ease,background .18s ease,color .18s ease;
+}
+.sk-chip:hover{transform:translateY(-2px);border-color:rgba(32,201,151,.45);background:var(--accent-soft);color:var(--accent-dark);}
+
+    .side-lang{display:flex;gap:6px;margin-top:14px;width:100%;}
+    .lang-btn{
+      flex:1;padding:7px 0;border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);background:transparent;
+      color:#aab1b8;font:inherit;font-size:12px;font-weight:600;letter-spacing:.5px;
+      cursor:pointer;transition:.2s;
+    }
+    .lang-btn:hover{color:#fff;border-color:rgba(255,255,255,.3);}
+    .lang-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+    html[lang="en"] .ru{display:none!important;}
+    html[lang="ru"] .en{display:none!important;}
+  </style>
+
+  <noscript>
+    <style>.reveal{opacity:1 !important;transform:none !important;}</style>
+  </noscript>
+</head>
+
+<body>
+<div id="vue-app" aria-hidden="true"></div>
+<div class="bg-img-main" aria-hidden="true"></div>
+  <button class="burger" id="burger" aria-label="Меню">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <div class="overlay" id="overlay"></div>
+
+  <div class="shell">
+
+    <aside class="sidebar" id="sidebar">
+      <div class="avatar">
+        <img src="/images/cases/photo.jpeg" alt="фото">
+      </div>
+      <div class="side-name ru">Николай Галкин</div>
+      <div class="side-name en">Nikolai Galkin</div>
+
+      <div class="side-lang" role="group" aria-label="Language">
+        <button type="button" class="lang-btn active" data-lang="ru">RU</button>
+        <button type="button" class="lang-btn" data-lang="en">EN</button>
+      </div>
+
+      <nav class="side-menu" id="menu">
+        <a href="#home" class="active"><span class="dot"></span><span class="ru">Главная</span><span class="en">Home</span></a>
+        <a href="#about"><span class="dot"></span><span class="ru">Обо мне</span><span class="en">About</span></a>
+        <a href="#services"><span class="dot"></span><span class="ru">Чем занимаюсь</span><span class="en">What I Do</span></a>
+        <a href="#resume"><span class="dot"></span><span class="ru">Опыт и навыки</span><span class="en">Experience</span></a>
+        <a href="#portfolio"><span class="dot"></span><span class="ru">Кейсы</span><span class="en">Work</span></a>
+        <a href="#contact"><span class="dot"></span><span class="ru">Контакты</span><span class="en">Contact</span></a>
+      </nav>
+
+      <div class="side-social">
+        <a href="https://t.me/CroixFirst" target="_blank" aria-label="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.6 19c-.2 1-.8 1.2-1.7.8l-4.6-3.4-2.2 2.1c-.2.2-.5.5-1 .5l.4-4.9 8.9-8c.4-.3-.1-.5-.6-.2L7.3 13.2l-4.7-1.5c-1-.3-1-1 .2-1.5l18.4-7.1c.9-.3 1.6.2 1.3 1.2z"/></svg></a>
+        <a href="mailto:nikolai.galkin92@mail.ru" aria-label="Email"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></a>
+      </div>
+    </aside>
+
+    <div class="main">
+
+      <section class="hero" id="home">
+        <div class="hero-inner">
+          <p class="hero-welcome reveal ru">Добро пожаловать</p>
+          <p class="hero-welcome reveal en">Welcome</p>
+          <h1 class="hero-h1 reveal"><span class="ru">Я - </span><span class="en">I'm a </span><span class="typed" id="typed"></span><span class="caret"></span></h1>
+          <p class="hero-sub reveal ru">PHP-разработчик с опытом поддержки и доработки 75+ проектов · работаю удалённо</p>
+          <p class="hero-sub reveal en">PHP developer with experience supporting and improving 75+ projects · working remotely</p>
+
+          <div class="hero-actions reveal">
+            <a href="#portfolio" class="btn btn-solid"><span class="ru">Смотреть кейсы</span><span class="en">Selected Work</span></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="about">
+        <div class="watermark">About Me</div>
+        <div class="wrap">
+          <div class="sec-head reveal"><span class="sec-title ru">Знакомьтесь</span><span class="sec-title en">Get to Know Me</span></div>
+
+          <div class="about-grid reveal">
+            <div class="about-copy">
+              <p class="about-lead ru">Я <em>PHP-разработчик</em></p>
+              <p class="about-lead en">I'm a <em>PHP Developer</em></p>
+              <p class="about-p ru">Коммерческая разработка - больше 3 лет, общий опыт в вебе - больше 4 лет. Помогаю бизнесу поддерживать, дорабатывать и спасать сайты и сервисы, когда нужна не красивая обёртка, а рабочая логика.</p>
+              <p class="about-p en">Commercial development - 3+ years, overall web experience - 4+ years. I help businesses maintain, improve and rescue websites and services when what's needed isn't a pretty wrapper but working logic.</p>
+              <p class="about-p ru">Работаю с PHP, MySQL и REST API — в основном на 1С-Битрикс/WordPress/MODX/Joomla, также есть опыт с Webasyst и Drupal. Специализируюсь на интеграциях (1С, CRM, платёжные системы), диагностике сложных багов и оптимизации производительности.</p>
+              <p class="about-p en">I work with PHP, MySQL and REST API - mostly on 1C-Bitrix/WordPress/MODX/Joomla, with experience in Webasyst and Drupal too. I focus on integrations (1C, CRM, payment systems), diagnosing complex bugs and performance optimization.</p>
+            </div>
+
+            <div class="about-info">
+              <div class="ai ru"><span class="k">Имя:</span> <span class="v">Николай Галкин</span></div>
+              <div class="ai en"><span class="k">Name:</span> <span class="v">Nikolai Galkin</span></div>
+              <div class="ai ru"><span class="k">Email:</span> <a class="v" href="mailto:nikolai.galkin92@mail.ru">nikolai.galkin92@mail.ru</a></div>
+              <div class="ai en"><span class="k">Email:</span> <a class="v" href="mailto:nikolai.galkin92@mail.ru">nikolai.galkin92@mail.ru</a></div>
+              <div class="ai ru"><span class="k">Опыт:</span> <span class="v">3+ лет</span></div>
+              <div class="ai en"><span class="k">Experience:</span> <span class="v">3+ years</span></div>
+              <div class="ai ru"><span class="k">Фокус:</span> <span class="v">PHP · e-commerce · интеграции</span></div>
+              <div class="ai en"><span class="k">Focus:</span> <span class="v">PHP · e-commerce · integrations</span></div>
+              <div class="ai ru"><span class="k">Формат:</span> <span class="v">удалённо</span></div>
+              <div class="ai en"><span class="k">Format:</span> <span class="v">remote</span></div>
+              <div class="about-cta"><a href="/uploads/resume.pdf" target="_blank" class="btn btn-solid ru">Скачать резюме</a><a href="/uploads/resume_eng.pdf" target="_blank" class="btn btn-solid en">Download Resume</a></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec soft" id="services">
+        <div class="watermark">Services</div>
+        <div class="wrap">
+          <div class="sec-head reveal"><span class="sec-title ru">Чем занимаюсь</span><span class="sec-title en">What I Do</span></div>
+          <div class="svc-grid">
+            <div class="svc reveal">
+              <div class="svc-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="19" cy="17" r="2"/></svg></div>
+              <div class="ru"><h3>Поддержка и доработка Битрикс</h3><p>D7 ORM, HighloadBlock, кастомные компоненты и шаблоны, развитие существующих магазинов и порталов.</p></div>
+              <div class="en"><h3>Bitrix Support &amp; Enhancement</h3><p>D7 ORM, HighloadBlock, custom components and templates, evolving existing stores and portals.</p></div>
+            </div>
+            <div class="svc reveal">
+              <div class="svc-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7 4 11l4 4M16 7l4 4-4 4M13 5l-2 14"/></svg></div>
+              <div class="ru"><h3>Интеграции</h3><p>Обмен с 1С (SOAP/XML), CRM, платёжные системы, доставка, Ozon Seller API, вебхуки и фоновые задачи.</p></div>
+              <div class="en"><h3>Integrations</h3><p>1C exchange (SOAP/XML), CRM, payment systems, delivery, Ozon Seller API, webhooks and background jobs.</p></div>
+            </div>
+            <div class="svc reveal">
+              <div class="svc-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M11 8v6M8 11h6"/></svg></div>
+              <div class="ru"><h3>Диагностика и исправление багов</h3><p>Сложный legacy, кроссбраузерные проблемы, узкие места производительности.</p></div>
+              <div class="en"><h3>Bug Diagnosis &amp; Fixes</h3><p>Complex legacy, cross-browser issues, performance bottlenecks.</p></div>
+            </div>
+            <div class="svc reveal">
+              <div class="svc-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div>
+              <div class="ru"><h3>Оптимизация скорости</h3><p>LCP и Core Web Vitals, кеширование тяжёлых выборок, приоритизация загрузки, отложенная аналитика.</p></div>
+              <div class="en"><h3>Performance Optimization</h3><p>LCP and Core Web Vitals, caching heavy queries, load prioritization, deferred analytics.</p></div>
+            </div>
+            <div class="svc reveal">
+              <div class="svc-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+              <div class="ru"><h3>Каталог и фильтры</h3><p>Умные фильтры, подбор товаров, группировка объектов, XML-фиды для площадок (Avito, DomClick) под внешние требования.</p></div>
+              <div class="en"><h3>Catalog &amp; Filters</h3><p>Smart filters, product matching, object grouping, XML feeds for marketplaces (Avito, DomClick) under external requirements.</p></div>
+            </div>
+            <div class="svc reveal">
+              <div class="svc-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18v12H3zM3 21h18M8 9h8M8 13h5"/></svg></div>
+              <div class="ru"><h3>Работа с разными CMS</h3><p>1С-Битрикс как основная платформа, также WordPress/WooCommerce, MODX, Joomla, Webasyst и Drupal — адаптируюсь под стек проекта.</p></div>
+              <div class="en"><h3>Multi-CMS Work</h3><p>1C-Bitrix as the main platform, plus WordPress/WooCommerce, MODX, Joomla, Webasyst and Drupal - I adapt to the project's stack.</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="resume">
+        <div class="watermark">Resume</div>
+        <div class="wrap">
+          <div class="sec-head reveal"><span class="sec-title ru">Опыт и навыки</span><span class="sec-title en">Experience &amp; Skills</span></div>
+          <div class="res-grid">
+            <div class="res-col reveal">
+              <h3 class="ru">Опыт работы</h3>
+              <h3 class="en">Work Experience</h3>
+              <div class="tl">
+
+                <div class="tl-item ru">
+                  <span class="tl-pill">Янв 2025 - Сен 2026</span>
+                  <h4>Bitrix-разработчик</h4>
+                  <div class="org">Интернет-агентство «Инфинити» · Киров</div>
+                  <p>Поддержка и доработка 30+ клиентских проектов на 1С-Битрикс, включая высоконагруженные интернет-магазины. Интеграция платёжных систем (ЮKassa, Сбербанк, Тинькофф) и служб доставки (СДЭК, Почта России) через REST API, автоматизация уведомлений и оплат по бизнес-логике клиента, связка сайтов с Битрикс24 - CRM-воронки и автоматические действия.</p>
+                </div>
+                <div class="tl-item en">
+                  <span class="tl-pill">Jan 2025 - Sep 2026</span>
+                  <h4>Bitrix Developer</h4>
+                  <div class="org">Infinity Web Agency · Kirov</div>
+                  <p>Support and enhancement of 30+ client projects on 1C-Bitrix, including high-load online stores. Integration of payment systems (YooKassa, Sberbank, Tinkoff) and delivery services (CDEK, Russian Post) via REST API; automation of order-status notifications and payment flows per client business logic; connecting sites to Bitrix24 API - CRM pipelines and automated actions.</p>
+                </div>
+
+                <div class="tl-item ru">
+                  <span class="tl-pill">Дек 2023 - Янв 2025</span>
+                  <h4>PHP-программист</h4>
+                  <div class="org">AWEB SYSTEM · Москва</div>
+                  <p>Доработка 20+ сайтов на CMS: Bitrix, WordPress, MODX, OpenCart, Joomla, DIAFAN.CMS, Webasyst. Кастомные модули и плагины, фильтрация товаров, сложные формы и собственные обработчики. Импорт/экспорт данных (XML, CSV), оптимизация backend-скриптов, техническое SEO (метатеги, микроразметка Schema.org), настройка DNS, доменов и почтовых серверов.</p>
+                </div>
+                <div class="tl-item en">
+                  <span class="tl-pill">Dec 2023 - Jan 2025</span>
+                  <h4>PHP Programmer</h4>
+                  <div class="org">AWEB SYSTEM · Moscow</div>
+                  <p>Maintenance and enhancement of 20+ sites across CMS: Bitrix, WordPress, MODX, OpenCart, Joomla, DIAFAN.CMS, Webasyst. Custom modules and plugins, product filtering, complex forms and custom handlers. Data import/export (XML, CSV), backend script optimization, technical SEO (meta tags, Schema.org microdata), DNS, domain and mail server setup.</p>
+                </div>
+
+                <div class="tl-item ru">
+                  <span class="tl-pill">Июн 2023 - Июл 2024</span>
+                  <h4>Программист-разработчик</h4>
+                  <div class="org">«Дом сайтов» · Санкт-Петербург</div>
+                  <p>Полный цикл разработки 25+ проектов на Bitrix и WordPress - от ТЗ до внедрения и сопровождения. Кастомные компоненты, модули и API-интеграции, адаптивная вёрстка, оптимизация скорости загрузки и SEO, техническая поддержка и консультирование заказчиков.</p>
+                </div>
+                <div class="tl-item en">
+                  <span class="tl-pill">Jun 2023 - Jul 2024</span>
+                  <h4>Software Developer</h4>
+                  <div class="org">Web Studio "Dom Saytov" · Saint Petersburg</div>
+                  <p>Full-cycle development of 25+ projects on Bitrix and WordPress - from spec to deployment and support. Custom components, modules and API integrations, responsive layout, load-speed and SEO optimization, technical support and client consulting.</p>
+                </div>
+
+                <div class="tl-item ru">
+                  <span class="tl-pill">Мар 2022 - Ноя 2022</span>
+                  <h4>Аналитик (1С)</h4>
+                  <div class="org">ООО «ТОПФАКТОР» · Волгоград</div>
+                  <p>Автоматизация бизнес-процессов и внедрение систем на базе 1С: разработка ТЗ, настройка прототипов, тестирование задач, обучение пользователей и администраторов. Ключевые проекты - «Управление целями и KPI» для холдинга «Руссклимат» и АО «Издательство „Просвещение“»; «Личный кабинет сотрудника» (СЭД/HR) для АО «АВИЛОН АГ», включая интеграционные задачи и частичное программирование.</p>
+                </div>
+                <div class="tl-item en">
+                  <span class="tl-pill">Mar 2022 - Nov 2022</span>
+                  <h4>Analyst (1C)</h4>
+                  <div class="org">TOPFAKTOR LLC · Volgograd</div>
+                  <p>Business-process automation and implementation of 1C-based systems: writing specs, configuring prototypes, testing tasks, training users and administrators. Key projects - "Goals &amp; KPI Management" for the Russklimat holding and AO "Prosveshchen Publishing House"; "Employee Self-Service Portal" (EDM/HR) for AO "AVILON AG", including integration tasks and partial programming.</p>
+                </div>
+
+              </div>
+            </div>
+            <div class="res-col reveal">
+              <h3 class="ru">Навыки</h3>
+              <h3 class="en">Skills</h3>
+              <div class="sk-cats">
+
+                <div class="sk-cat">
+                  <h4>Backend</h4>
+                  <div class="sk-chips ru">
+                    <span class="sk-chip">PHP 7/8</span>
+                    <span class="sk-chip">ООП</span>
+                    <span class="sk-chip">Laravel</span>
+                    <span class="sk-chip">MySQL</span>
+                    <span class="sk-chip">REST API</span>
+                    <span class="sk-chip">Git</span>
+                  </div>
+                  <div class="sk-chips en">
+                    <span class="sk-chip">PHP 7/8</span>
+                    <span class="sk-chip">OOP</span>
+                    <span class="sk-chip">Laravel</span>
+                    <span class="sk-chip">MySQL</span>
+                    <span class="sk-chip">REST API</span>
+                    <span class="sk-chip">Git</span>
+                  </div>
+                </div>
+
+                <div class="sk-cat">
+                  <h4>Frontend</h4>
+                  <div class="sk-chips">
+                    <span class="sk-chip">JavaScript</span>
+                    <span class="sk-chip">jQuery / AJAX</span>
+                    <span class="sk-chip">HTML5</span>
+                    <span class="sk-chip">CSS3 / SCSS</span>
+                    <span class="sk-chip">Bootstrap</span>
+                    <span class="sk-chip">Vue.js</span>
+                  </div>
+                </div>
+
+                <div class="sk-cat">
+                  <h4>CMS</h4>
+                  <div class="sk-chips">
+                    <span class="sk-chip">1С-Битрикс (D7 ORM, HighloadBlock)</span>
+                    <span class="sk-chip">Битрикс24 API</span>
+                    <span class="sk-chip">WordPress</span>
+                    <span class="sk-chip">WooCommerce</span>
+                    <span class="sk-chip">MODX</span>
+                    <span class="sk-chip">OpenCart</span>
+                    <span class="sk-chip">Joomla</span>
+                    <span class="sk-chip">DIAFAN.CMS</span>
+                    <span class="sk-chip">Webasyst</span>
+                  </div>
+                </div>
+
+                <div class="sk-cat">
+                  <h4 class="ru">ИИ в разработке</h4>
+                  <h4 class="en">AI in Development</h4>
+                  <div class="sk-chips">
+                    <span class="sk-chip">Claude</span>
+                    <span class="sk-chip">OpenAI Codex</span>
+                    <span class="sk-chip">ChatGPT</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          <div class="res-cta reveal"><a href="/uploads/resume.pdf" target="_blank" class="btn btn-outline ru">Скачать резюме</a><a href="/uploads/resume_eng.pdf" target="_blank" class="btn btn-outline en">Download Resume</a></div>
+        </div>
+      </section>
+
+      <section class="sec soft" id="portfolio">
+        <div class="watermark">Portfolio</div>
+        <div class="wrap">
+          <div class="sec-head reveal"><span class="sec-title ru">Кейсы</span><span class="sec-title en">Selected Work</span></div>
+
+          <div class="pf-grid reveal">
+
+            <button type="button" class="pcard" data-case>
+              <div class="shot">
+                <img src="images/cases/car-battery.jpg" alt="Превью car-battery.ru" loading="lazy" onerror="this.style.display='none'">
+              </div>
+              <div class="pcard-body">
+                <h3>car-battery.ru</h3>
+                <div class="tags ru"><span class="tag">1С-Битрикс</span><span class="tag">e-commerce</span></div>
+                <div class="tags en"><span class="tag">1C-Bitrix</span><span class="tag">e-commerce</span></div>
+                <span class="pcard-cta ru">Открыть кейс <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                <span class="pcard-cta en">Open case <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+              <div class="case-detail">
+                <h3>car-battery.ru</h3>
+                <div class="case-url"><span class="ru">Сайт: </span><span class="en">Website: </span><a href="https://car-battery.ru" target="_blank" rel="noopener">car-battery.ru</a></div>
+                <p class="lead ru">Магазин автомобильных аккумуляторов. Основная задача - выстроить корректную постобработку каталога после импорта из 1С и внедрить нестандартную механику скидки за сдачу старого товара.</p>
+                <p class="lead en">An automotive battery store. The main task was to build correct catalog post-processing after the 1C import and implement a non-standard discount mechanic for trading in an old item.</p>
+                <p class="modal-h ru">Что сделал</p>
+                <p class="modal-h en">What I Did</p>
+                <ul class="modal-list ru">
+                  <li>Постобработка каталога после импорта из 1С на D7 ORM и HighloadBlock.</li>
+                  <li>Динамическая скидка за сдачу старого товара с интеграцией в корзину через AJAX.</li>
+                  <li>Автогенерация характеристик товаров и обработка изображений.</li>
+                  <li>Кеширование тяжёлых выборок, чтобы каталог не грузился на каждом запросе.</li>
+                </ul>
+                <ul class="modal-list en">
+                  <li>Catalog post-processing after 1C import using D7 ORM and HighloadBlock.</li>
+                  <li>Dynamic trade-in discount integrated into the cart via AJAX.</li>
+                  <li>Auto-generation of product attributes and image processing.</li>
+                  <li>Caching of heavy queries so the catalog doesn't reload on every request.</li>
+                </ul>
+                <p class="modal-h ru">Стек</p>
+                <p class="modal-h en">Stack</p>
+                <div class="modal-tags ru"><span class="tag">PHP</span><span class="tag">1С-Битрикс D7</span><span class="tag">HighloadBlock</span><span class="tag">MySQL</span><span class="tag">jQuery / AJAX</span></div>
+                <div class="modal-tags en"><span class="tag">PHP</span><span class="tag">1C-Bitrix D7</span><span class="tag">HighloadBlock</span><span class="tag">MySQL</span><span class="tag">jQuery / AJAX</span></div>
+              </div>
+            </button>
+
+            <button type="button" class="pcard" data-case>
+              <div class="shot">
+                <img src="images/cases/wheelshops.jpg" alt="Превью wheelshops.ru" loading="lazy" onerror="this.style.display='none'">
+              </div>
+              <div class="pcard-body">
+                <h3>wheelshops.ru</h3>
+                <div class="tags ru"><span class="tag">1С-Битрикс</span><span class="tag">Aspro</span></div>
+                <div class="tags en"><span class="tag">1C-Bitrix</span><span class="tag">Aspro</span></div>
+                <span class="pcard-cta ru">Открыть кейс <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                <span class="pcard-cta en">Open case <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+              <div class="case-detail">
+                <h3>wheelshops.ru</h3>
+                <div class="case-url"><span class="ru">Сайт: </span><span class="en">Website: </span><a href="https://wheelshops.ru" target="_blank" rel="noopener">wheelshops.ru</a></div>
+                <p class="lead ru">Дисковый магазин на готовом решении Aspro. Требовалось расширить штатный умный фильтр под нестандартный сценарий подбора колёсных комплектов.</p>
+                <p class="lead en">A wheel store on the ready-made Aspro solution. The smart catalog filter had to be extended for a non-standard wheel-and-tire set selection scenario.</p>
+                <p class="modal-h ru">Что сделал</p>
+                <p class="modal-h en">What I Did</p>
+                <ul class="modal-list ru">
+                  <li>Доработка умного фильтра каталога: режим подбора разноширокой резины и дисков.</li>
+                  <li>Парсинг параметров прямо из названия товара.</li>
+                  <li>Автоматическая сборка комплектов (передняя/задняя ось) из подобранных позиций.</li>
+                  <li>Синхронизация состояния фильтра с URL для корректных ссылок и истории.</li>
+                </ul>
+                <ul class="modal-list en">
+                  <li>Smart catalog filter extension: staggered selection of different-width tires and rims.</li>
+                  <li>Parsing parameters straight from the product name.</li>
+                  <li>Automatic set assembly (front/rear axle) from matched items.</li>
+                  <li>Syncing filter state with the URL for correct links and history.</li>
+                </ul>
+                <p class="modal-h ru">Стек</p>
+                <p class="modal-h en">Stack</p>
+                <div class="modal-tags ru"><span class="tag">PHP</span><span class="tag">1С-Битрикс</span><span class="tag">Aspro</span><span class="tag">JS</span></div>
+                <div class="modal-tags en"><span class="tag">PHP</span><span class="tag">1C-Bitrix</span><span class="tag">Aspro</span><span class="tag">JS</span></div>
+              </div>
+            </button>
+
+            <button type="button" class="pcard" data-case>
+              <div class="shot shot-dash">
+                <div class="dash-top">
+                  <span class="dash-brand">SalesRate</span>
+                  <span class="dash-url">analytics · ozon sellers</span>
+                </div>
+                <div class="dash-kpis ru">
+                  <div class="kp"><b>+18%</b><span>маржа Q3</span></div>
+                  <div class="kp"><b>₽4.2M</b><span>оборот</span></div>
+                  <div class="kp"><b>96</b><span>SKU в анализе</span></div>
+                </div>
+                <div class="dash-kpis en">
+                  <div class="kp"><b>+18%</b><span>Q3 margin</span></div>
+                  <div class="kp"><b>₽4.2M</b><span>revenue</span></div>
+                  <div class="kp"><b>96</b><span>SKUs analyzed</span></div>
+                </div>
+                <div class="dash-chart">
+                  <svg viewBox="0 0 300 120" preserveAspectRatio="none" aria-hidden="true">
+                    <line x1="0" y1="30" x2="300" y2="30"/>
+                    <line x1="0" y1="60" x2="300" y2="60"/>
+                    <line x1="0" y1="90" x2="300" y2="90"/>
+                    <g class="bars">
+                      <rect x="14"  y="52" width="14" height="68"/><rect x="30"  y="78" width="14" height="42"/>
+                      <rect x="62"  y="40" width="14" height="80"/><rect x="78"  y="70" width="14" height="50"/>
+                      <rect x="110" y="58" width="14" height="62"/><rect x="126" y="82" width="14" height="38"/>
+                      <rect x="158" y="34" width="14" height="86"/><rect x="174" y="64" width="14" height="56"/>
+                      <rect x="206" y="48" width="14" height="72"/><rect x="222" y="74" width="14" height="46"/>
+                      <rect x="254" y="28" width="14" height="92"/><rect x="270" y="60" width="14" height="60"/>
+                    </g>
+                    <polyline class="trend" points="21,80 69,72 117,84 165,66 213,76 261,62"/>
+                  </svg>
+                  <div class="dash-legend ru"><i class="lg-cost"></i>себестоимость<i class="lg-profit"></i>прибыль<i class="lg-trend"></i>тренд</div>
+                  <div class="dash-legend en"><i class="lg-cost"></i>cost<i class="lg-profit"></i>profit<i class="lg-trend"></i>trend</div>
+                </div>
+              </div>
+              <div class="pcard-body">
+                <h3>salesrate.ru</h3>
+                <div class="tags ru"><span class="tag">1С-Битрикс</span><span class="tag">SaaS</span><span class="tag">Ozon API</span></div>
+                <div class="tags en"><span class="tag">1C-Bitrix</span><span class="tag">SaaS</span><span class="tag">Ozon API</span></div>
+                <span class="pcard-cta ru">Открыть кейс <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                <span class="pcard-cta en">Open case <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+              <div class="case-detail">
+                <h3>salesrate.ru</h3>
+                <div class="case-url"><span class="ru">Сайт: </span><span class="en">Website: </span><a href="https://salesrate.ru" target="_blank" rel="noopener">salesrate.ru</a></div>
+                <p class="lead ru">B2B-сервис аналитики продаж для продавцов на Ozon: личный кабинет с расчётом экономики по товарам и выгрузкой отчётов.</p>
+                <p class="lead en">A B2B sales-analytics service for Ozon sellers: a personal cabinet with per-product economics calculation and report export.</p>
+                <p class="modal-h ru">Что сделал</p>
+                <p class="modal-h en">What I Did</p>
+                <ul class="modal-list ru">
+                  <li>Интеграция с Ozon Seller API для получения данных по продажам, товарам и финансовым транзакциям.</li>
+                  <li>Расчёт себестоимости и прибыли с инлайн-редактированием значений в таблице через AJAX.</li>
+                  <li>Экспорт и импорт данных через Excel.</li>
+                  <li>Отладка финансовой логики: корректное сопоставление артикулов, расчёт расходов.</li>
+                </ul>
+                <ul class="modal-list en">
+                  <li>Integration with the Ozon Seller API to pull sales, product and financial transaction data.</li>
+                  <li>Cost and profit calculation with inline editing of table values via AJAX.</li>
+                  <li>Data export and import via Excel.</li>
+                  <li>Debugging financial logic: correct SKU matching and expense calculation.</li>
+                </ul>
+                <p class="modal-h ru">Стек</p>
+                <p class="modal-h en">Stack</p>
+                <div class="modal-tags ru"><span class="tag">PHP</span><span class="tag">1С-Битрикс</span><span class="tag">Ozon Seller API</span><span class="tag">MySQL</span><span class="tag">Excel</span></div>
+                <div class="modal-tags en"><span class="tag">PHP</span><span class="tag">1C-Bitrix</span><span class="tag">Ozon Seller API</span><span class="tag">MySQL</span><span class="tag">Excel</span></div>
+              </div>
+            </button>
+
+            <button type="button" class="pcard" data-case>
+              <div class="shot">
+                <img src="images/cases/frimis.jpg" alt="Превью frimis.ru" loading="lazy" onerror="this.style.display='none'">
+              </div>
+              <div class="pcard-body">
+                <h3>frimis.ru</h3>
+                <div class="tags ru"><span class="tag">1С-Битрикс</span><span class="tag">performance</span></div>
+                <div class="tags en"><span class="tag">1C-Bitrix</span><span class="tag">performance</span></div>
+                <span class="pcard-cta ru">Открыть кейс <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                <span class="pcard-cta en">Open case <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+              <div class="case-detail">
+                <h3>frimis.ru</h3>
+                <div class="case-url"><span class="ru">Сайт: </span><span class="en">Website: </span><a href="https://frimis.ru" target="_blank" rel="noopener">frimis.ru</a></div>
+                <p class="lead ru">Магазин, где требовалось и изменить бизнес-логику оплаты, и заметно ускорить мобильную версию.</p>
+                <p class="lead en">A store where both the payment business logic had to change and the mobile version noticeably sped up.</p>
+                <p class="modal-h ru">Что сделал</p>
+                <p class="modal-h en">What I Did</p>
+                <ul class="modal-list ru">
+                  <li>Кастомный флоу «оплата после подтверждения менеджером».</li>
+                  <li>Оптимизация LCP на мобильных: приоритизация загрузки критичных изображений.</li>
+                  <li>Исправление некорректного кеширования JS-файлов.</li>
+                  <li>Отложенная загрузка аналитических скриптов, чтобы не блокировать рендер.</li>
+                </ul>
+                <ul class="modal-list en">
+                  <li>Custom "pay after manager confirmation" flow.</li>
+                  <li>Mobile LCP optimization: prioritizing critical image loading.</li>
+                  <li>Fixing incorrect JS file caching.</li>
+                  <li>Deferred loading of analytics scripts so they don't block rendering.</li>
+                </ul>
+                <p class="modal-h ru">Стек</p>
+                <p class="modal-h en">Stack</p>
+                <div class="modal-tags ru"><span class="tag">PHP</span><span class="tag">1С-Битрикс</span><span class="tag">Core Web Vitals</span><span class="tag">JS</span></div>
+                <div class="modal-tags en"><span class="tag">PHP</span><span class="tag">1C-Bitrix</span><span class="tag">Core Web Vitals</span><span class="tag">JS</span></div>
+              </div>
+            </button>
+
+            <button type="button" class="pcard" data-case>
+              <div class="shot">
+                <img src="images/cases/nanikaofficial.jpg" alt="Превью nanikaofficial.com" loading="lazy" onerror="this.style.display='none'">
+              </div>
+              <div class="pcard-body">
+                <h3>nanikaofficial.com</h3>
+                <div class="tags ru"><span class="tag">1С-Битрикс</span><span class="tag">debug</span><span class="tag">email</span></div>
+                <div class="tags en"><span class="tag">1C-Bitrix</span><span class="tag">debug</span><span class="tag">email</span></div>
+                <span class="pcard-cta ru">Открыть кейс <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                <span class="pcard-cta en">Open case <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+              <div class="case-detail">
+                <h3>nanikaofficial.com</h3>
+                <div class="case-url"><span class="ru">Сайт: </span><span class="en">Website: </span><a href="https://nanikaofficial.com" target="_blank" rel="noopener">nanikaofficial.com</a></div>
+                <p class="lead ru">Классический кейс диагностики: страница оплаты грузилась около 30 секунд, что убивало конверсию.</p>
+                <p class="lead en">A classic diagnosis case: the payment page took about 30 seconds to load, killing conversion.</p>
+                <p class="modal-h ru">Что сделал</p>
+                <p class="modal-h en">What I Did</p>
+                <ul class="modal-list ru">
+                  <li>Нашёл узкое место в платёжном модуле: синхронный опрос сотен транзакций HTTP-запросами при каждой загрузке.</li>
+                  <li>Устранил причину 30-секундной загрузки страницы оплаты точечной правкой фильтра.</li>
+                  <li>Собрал систему email-напоминаний о неоплаченных заказах с защитой от дублей.</li>
+                  <li>Добавил автоотмену зависших заказов по таймауту.</li>
+                </ul>
+                <ul class="modal-list en">
+                  <li>Found the bottleneck in the payment module: synchronous polling of hundreds of transactions via HTTP on every load.</li>
+                  <li>Eliminated the 30-second payment-page load with a targeted filter fix.</li>
+                  <li>Built an email reminder system for unpaid orders with duplicate protection.</li>
+                  <li>Added auto-cancellation of stuck orders by timeout.</li>
+                </ul>
+                <p class="modal-h ru">Стек</p>
+                <p class="modal-h en">Stack</p>
+                <div class="modal-tags ru"><span class="tag">PHP</span><span class="tag">1С-Битрикс</span><span class="tag">payment module</span><span class="tag">email</span><span class="tag">cron</span></div>
+                <div class="modal-tags en"><span class="tag">PHP</span><span class="tag">1C-Bitrix</span><span class="tag">payment module</span><span class="tag">email</span><span class="tag">cron</span></div>
+              </div>
+            </button>
+
+            <button type="button" class="pcard" data-case>
+              <div class="shot">
+                <img src="images/cases/taipit-mebel.jpg" alt="Превью taipit-mebel.ru" loading="lazy" onerror="this.style.display='none'">
+              </div>
+              <div class="pcard-body">
+                <h3>taipit-mebel.ru</h3>
+                <div class="tags ru"><span class="tag">1С-Битрикс</span><span class="tag">1С обмен</span></div>
+                <div class="tags en"><span class="tag">1C-Bitrix</span><span class="tag">1C sync</span></div>
+                <span class="pcard-cta ru">Открыть кейс <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                <span class="pcard-cta en">Open case <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+              <div class="case-detail">
+                <h3>taipit-mebel.ru</h3>
+                <div class="case-url"><span class="ru">Сайт: </span><span class="en">Website: </span><a href="https://taipit-mebel.ru" target="_blank" rel="noopener">taipit-mebel.ru</a></div>
+                <p class="lead ru">Мебельный магазин с большим объёмом данных и обменом с 1С; отдельно - восстановление потерянных данных и кроссбраузерный баг.</p>
+                <p class="lead en">A furniture store with large data volume and 1C exchange; separately - recovering lost data and a cross-browser bug.</p>
+                <p class="modal-h ru">Что сделал</p>
+                <p class="modal-h en">What I Did</p>
+                <ul class="modal-list ru">
+                  <li>Поддержка и доработка обмена с 1С по SOAP, устранение конфликта дублирующих cron-задач.</li>
+                  <li>Восстановил потерянные свойства инфоблоков кастомными скриптами: БД ~40 ГБ, штатный перенос был невозможен.</li>
+                  <li>Починил кроссбраузерный баг перерисовки SVG-иконок в Chrome.</li>
+                </ul>
+                <ul class="modal-list en">
+                  <li>Support and enhancement of 1C exchange over SOAP, resolving a conflict between duplicate cron jobs.</li>
+                  <li>Recovered lost info-block properties with custom scripts: ~40 GB DB, a standard migration was impossible.</li>
+                  <li>Fixed a cross-browser SVG icon re-render bug in Chrome.</li>
+                </ul>
+                <p class="modal-h ru">Стек</p>
+                <p class="modal-h en">Stack</p>
+                <div class="modal-tags ru"><span class="tag">PHP</span><span class="tag">1С-Битрикс</span><span class="tag">SOAP/XML</span><span class="tag">MySQL</span><span class="tag">JS</span></div>
+                <div class="modal-tags en"><span class="tag">PHP</span><span class="tag">1C-Bitrix</span><span class="tag">SOAP/XML</span><span class="tag">MySQL</span><span class="tag">JS</span></div>
+              </div>
+            </button>
+
+            <button type="button" class="pcard" data-case>
+              <div class="shot">
+                <img src="images/cases/dance.jpg" alt="Превью dance.ru" loading="lazy" onerror="this.style.display='none'">
+              </div>
+              <div class="pcard-body">
+                <h3>dance.ru</h3>
+                <div class="tags ru"><span class="tag">1С-Битрикс</span><span class="tag">Битрикс24</span></div>
+                <div class="tags en"><span class="tag">1C-Bitrix</span><span class="tag">Bitrix24</span></div>
+                <span class="pcard-cta ru">Открыть кейс <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                <span class="pcard-cta en">Open case <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+              <div class="case-detail">
+                <h3>dance.ru</h3>
+                <div class="case-url"><span class="ru">Сайт: </span><span class="en">Website: </span><a href="https://dance.ru" target="_blank" rel="noopener">dance.ru</a></div>
+                <p class="lead ru">Портал с танцевальными конкурсами и регистрацией участников; требовалось связать сайт с Битрикс24 и усложнить логику заявок.</p>
+                <p class="lead en">A portal with dance competitions and participant registration; the site had to be connected to Bitrix24 and the application logic made more complex.</p>
+                <p class="modal-h ru">Что сделал</p>
+                <p class="modal-h en">What I Did</p>
+                <ul class="modal-list ru">
+                  <li>Доработка модуля регистрации на конкурсы с поддержкой промокодов.</li>
+                  <li>Интеграция с Битрикс24 через REST API - выгрузка заявок в сделки.</li>
+                  <li>Кастомный роутинг для лендинг-страницы конкурса.</li>
+                  <li>Создание и ведение справочников через D7 ORM.</li>
+                </ul>
+                <ul class="modal-list en">
+                  <li>Enhanced the competition registration module with promo-code support.</li>
+                <li>Bitrix24 integration via REST API - pushing applications into deals.</li>
+                  <li>Custom routing for the competition landing page.</li>
+                  <li>Creating and maintaining directories via D7 ORM.</li>
+                </ul>
+                <p class="modal-h ru">Стек</p>
+                <p class="modal-h en">Stack</p>
+                <div class="modal-tags ru"><span class="tag">PHP</span><span class="tag">1С-Битрикс</span><span class="tag">Битрикс24 API</span></div>
+                <div class="modal-tags en"><span class="tag">PHP</span><span class="tag">1C-Bitrix</span><span class="tag">Bitrix24 API</span></div>
+              </div>
+            </button>
+
+            <button type="button" class="pcard" data-case>
+              <div class="shot">
+                <img src="images/cases/stilfort.jpg" alt="Превью stilfort.com" loading="lazy" onerror="this.style.display='none'">
+              </div>
+              <div class="pcard-body">
+                <h3>stilfort.com</h3>
+                <div class="tags ru"><span class="tag">1С-Битрикс</span><span class="tag">поиск</span><span class="tag">events</span></div>
+                <div class="tags en"><span class="tag">1C-Bitrix</span><span class="tag">search</span><span class="tag">events</span></div>
+                <span class="pcard-cta ru">Открыть кейс <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                <span class="pcard-cta en">Open case <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+              <div class="case-detail">
+                <h3>stilfort.com</h3>
+                <div class="case-url"><span class="ru">Сайт: </span><span class="en">Website: </span><a href="https://stilfort.com" target="_blank" rel="noopener">stilfort.com</a></div>
+                <p class="lead ru">Комплексная доработка мебельного магазина: от поведения поиска до расширения логики оформления заказа и регистрации на мероприятия.</p>
+                <p class="lead en">A comprehensive furniture-store overhaul: from search behavior to extending checkout logic and event registration.</p>
+                <p class="modal-h ru">Что сделал</p>
+                <p class="modal-h en">What I Did</p>
+                <ul class="modal-list ru">
+                  <li>Доработка поиска: разные стратегии под точный артикул, числовой и текстовый запрос.</li>
+                  <li>Автоматизация каталожных процессов (статусы товаров, сортировка разделов).</li>
+                  <li>Регистрация на мероприятия с email-напоминаниями и защитой от дублей.</li>
+                  <li>Расширение логики оформления заказа под бизнес-требования.</li>
+                </ul>
+                <ul class="modal-list en">
+                  <li>Search enhancement: different strategies for exact SKU, numeric and text queries.</li>
+                  <li>Automating catalog processes (product statuses, section sorting).</li>
+                  <li>Event registration with email reminders and duplicate protection.</li>
+                  <li>Extending checkout logic to fit business requirements.</li>
+                </ul>
+                <p class="modal-h ru">Стек</p>
+                <p class="modal-h en">Stack</p>
+                <div class="modal-tags ru"><span class="tag">PHP</span><span class="tag">1С-Битрикс</span><span class="tag">search</span><span class="tag">email</span><span class="tag">cron</span></div>
+                <div class="modal-tags en"><span class="tag">PHP</span><span class="tag">1C-Bitrix</span><span class="tag">search</span><span class="tag">email</span><span class="tag">cron</span></div>
+              </div>
+            </button>
+
+            <button type="button" class="pcard" data-case>
+              <div class="shot">
+                <img src="images/cases/kvartiry.jpg" alt="Превью kvartiry.kssk.ru" loading="lazy" onerror="this.style.display='none'">
+              </div>
+              <div class="pcard-body">
+                <h3>kvartiry.kssk.ru</h3>
+                <div class="tags ru"><span class="tag">1С-Битрикс</span><span class="tag">недвижимость</span><span class="tag">XML-фиды</span></div>
+                <div class="tags en"><span class="tag">1C-Bitrix</span><span class="tag">real estate</span><span class="tag">XML feeds</span></div>
+                <span class="pcard-cta ru">Открыть кейс <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                <span class="pcard-cta en">Open case <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+              <div class="case-detail">
+                <h3>kvartiry.kssk.ru</h3>
+                <div class="case-url"><span class="ru">Сайт: </span><span class="en">Website: </span><a href="https://kvartiry.kssk.ru" target="_blank" rel="noopener">kvartiry.kssk.ru</a></div>
+                <p class="lead ru">Каталог квартир застройщика с фильтрацией по жилым комплексам и выгрузкой на внешние площадки недвижимости.</p>
+                <p class="lead en">A developer's apartment catalog with filtering by residential complexes and export to external real-estate platforms.</p>
+                <p class="modal-h ru">Что сделал</p>
+                <p class="modal-h en">What I Did</p>
+                <ul class="modal-list ru">
+                  <li>Фильтр квартир по ЖК с группировкой объектов в один пункт фильтра.</li>
+                  <li>Доработка XML-фидов для DomClick и Авито под их внешние требования (описание, сопоставление секций).</li>
+                  <li>Генерация изображений планировок квартир с водяными знаками.</li>
+                </ul>
+                <ul class="modal-list en">
+                  <li>Apartment filter by residential complex with grouping objects into one filter item.</li>
+                  <li>XML feed tweaks for DomClick and Avito to meet their external requirements (descriptions, section mapping).</li>
+                  <li>Generating floor-plan images with watermarks.</li>
+                </ul>
+                <p class="modal-h ru">Стек</p>
+                <p class="modal-h en">Stack</p>
+                <div class="modal-tags ru"><span class="tag">PHP</span><span class="tag">1С-Битрикс</span><span class="tag">XML feed</span><span class="tag">GD / image</span></div>
+                <div class="modal-tags en"><span class="tag">PHP</span><span class="tag">1C-Bitrix</span><span class="tag">XML feed</span><span class="tag">GD / image</span></div>
+              </div>
+            </button>
+
+            <button type="button" class="pcard" data-case>
+              <div class="shot">
+                <img src="images/cases/linx.jpg" alt="Превью linx.ru" loading="lazy" onerror="this.style.display='none'">
+              </div>
+              <div class="pcard-body">
+                <h3>linx.ru</h3>
+                <div class="tags ru"><span class="tag">1С-Битрикс</span><span class="tag">HighloadBlock</span><span class="tag">калькулятор</span></div>
+                <div class="tags en"><span class="tag">1C-Bitrix</span><span class="tag">HighloadBlock</span><span class="tag">calculator</span></div>
+                <span class="pcard-cta ru">Открыть кейс <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                <span class="pcard-cta en">Open case <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+              <div class="case-detail">
+                <h3>linx.ru</h3>
+                <div class="case-url"><span class="ru">Сайт: </span><span class="en">Website: </span><a href="https://linx.ru" target="_blank" rel="noopener">linx.ru</a></div>
+                <p class="lead ru">Калькулятор облачных услуг (IaaS) с динамическим ценообразованием по множеству параметров - сложная enterprise-система на связке инфоблоков и HighLoad-блоков.</p>
+                <p class="lead en">A cloud-services (IaaS) calculator with dynamic pricing across many parameters - a complex enterprise system built on a chain of info blocks and HighLoad blocks.</p>
+                <p class="modal-h ru">Что сделал</p>
+                <p class="modal-h en">What I Did</p>
+                <ul class="modal-list ru">
+                  <li>Разобрался в многоуровневой модели цен: формулы расчёта + отдельные записи-варианты в HighLoad-блоках под каждую комбинацию параметров.</li>
+                  <li>Внёс точечные изменения в интерфейс калькулятора и логику отображения полей.</li>
+                  <li>Скорректировал цены и настройки в HighLoad-блоках под новые условия.</li>
+                </ul>
+                <ul class="modal-list en">
+                  <li>Untangled the multi-level pricing model: calculation formulas plus separate variant records in HighLoad blocks for each parameter combination.</li>
+                  <li>Made targeted changes to the calculator UI and field-display logic.</li>
+                  <li>Adjusted prices and settings in HighLoad blocks for new conditions.</li>
+                </ul>
+                <p class="modal-h ru">Стек</p>
+                <p class="modal-h en">Stack</p>
+                <div class="modal-tags ru"><span class="tag">PHP</span><span class="tag">1С-Битрикс</span><span class="tag">HighloadBlock</span></div>
+                <div class="modal-tags en"><span class="tag">PHP</span><span class="tag">1C-Bitrix</span><span class="tag">HighloadBlock</span></div>
+              </div>
+            </button>
+
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="more">
+        <div class="watermark">More Work</div>
+        <div class="wrap">
+          <div class="sec-head reveal"><span class="sec-title ru">Ещё проекты</span><span class="sec-title en">More Projects</span></div>
+
+          <p class="more-intro reveal ru">Мелкие доработки и точечные задачи, которые не вынесены в отдельные кейсы, но тоже решались на проде.</p>
+          <p class="more-intro reveal en">Small fixes and point tasks that weren't broken out into separate cases but were also solved in production.</p>
+
+          <div class="more-list reveal">
+            <div class="mi">
+              <b>kibet-shop.ru</b>
+              <span class="ru">Исправление расхождения цены доставки СДЭК</span>
+              <span class="en">Fixed a CDEK delivery price mismatch</span>
+            </div>
+            <div class="mi">
+              <b>cp.kssk.ru</b>
+              <span class="ru">Интеграция телефонии Mango Office (Битрикс24)</span>
+              <span class="en">Mango Office telephony integration (Bitrix24)</span>
+            </div>
+            <div class="mi">
+              <b>sk-cherry-house.ru</b>
+              <span class="ru">MODX - AJAX-формы с CSRF-защитой, SEO-роутинг</span>
+              <span class="en">MODX - AJAX forms with CSRF protection, SEO routing</span>
+            </div>
+            <div class="mi">
+              <b>paterria.ru</b>
+              <span class="ru">MODX - кастомная система форм, своя CAPTCHA</span>
+              <span class="en">MODX - custom form system, own CAPTCHA</span>
+            </div>
+            <div class="mi">
+              <b>q-prom.ru</b>
+              <span class="ru">WooCommerce - кастомизация через хуки</span>
+              <span class="en">WooCommerce - customization via hooks</span>
+            </div>
+            <div class="mi">
+              <b>prokarkas.com</b>
+              <span class="ru">WordPress - frontend-калькуляторы стоимости</span>
+              <span class="en">WordPress - frontend cost calculators</span>
+            </div>
+            <div class="mi">
+              <b>derstek.ru</b>
+              <span class="ru">Webasyst - микроразметка Schema.org вручную</span>
+              <span class="en">Webasyst - manual Schema.org microdata</span>
+            </div>
+            <div class="mi">
+              <b>donnavanna.ru</b>
+              <span class="ru">Битрикс - доработка вёрстки существующего шаблона, адаптив под мобильные, правки типовых элементов и стилей</span>
+              <span class="en">Bitrix - refining an existing template's layout, mobile responsiveness, edits to standard elements and styles</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="contact">
+        <div class="watermark">Contact</div>
+        <div class="wrap">
+          <div class="sec-head reveal"><span class="sec-title ru">Связаться</span><span class="sec-title en">Get in Touch</span></div>
+
+          <div class="ct-grid">
+            <div class="ct-side reveal">
+              <p class="ct-desc ru">Открыт к предложениям о работе. Можно написать напрямую - обычно отвечаю в течение дня.</p>
+              <p class="ct-desc en">Open to job offers. You can write directly - I usually reply within a day.</p>
+              <a href="https://t.me/CroixFirst" target="_blank" class="btn btn-solid"><span class="ru">Написать в Telegram</span><span class="en">Message on Telegram</span></a>
+            </div>
+
+            <div class="ct-links reveal">
+              <a href="mailto:nikolai.galkin92@mail.ru" class="ct-link">
+                <span class="ct-meta"><span class="ct-lbl">EMAIL</span><span class="ct-val">nikolai.galkin92@mail.ru</span></span>
+                <svg class="ct-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+              </a>
+              <a href="https://t.me/CroixFirst" target="_blank" class="ct-link">
+                <span class="ct-meta"><span class="ct-lbl">TELEGRAM</span><span class="ct-val">CroixFirst</span></span>
+                <svg class="ct-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+              </a>
+              <a href="https://hh.ru/resume/fce1a0a8ff07da10f70039ed1f59594d597754" target="_blank" class="ct-link">
+                <span class="ct-meta"><span class="ct-lbl">HH.RU</span><span class="ct-val ru">резюме на hh.ru</span><span class="ct-val en">resume on hh.ru</span></span>
+                <svg class="ct-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="foot">
+        <span class="ru">© 2026 Николай Галкин · PHP-разработчик · <a href="#home">наверх ↑</a></span>
+        <span class="en">© 2026 Nikolai Galkin · PHP Developer · <a href="#home">back to top ↑</a></span>
+      </footer>
+
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <button class="modal-close" id="modalClose" aria-label="Закрыть">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div class="modal-shot" id="modalShot"></div>
+      <div class="modal-content" id="modalContent"></div>
+    </div>
+  </div>
+
+  <script type="application/legacy">
+    window.__forceShowReveals = function(){
+      document.querySelectorAll('.reveal').forEach(function(e){ e.classList.add('in'); });
+    };
+    setTimeout(window.__forceShowReveals, 1200);
+  </script>
+
+  <script type="application/legacy">
+    (function(){
+      var ROLES={
+        ru:['PHP-разработчик','Специалист по Битрикс','Инженер по интеграциям','Специалист по legacy-коду'],
+        en:['PHP Developer','Bitrix Specialist','Integration Engineer','Legacy Code Specialist']
+      };
+      var TITLES={
+        ru:'Николай Галкин - PHP-разработчик',
+        en:'Nikolai Galkin - PHP Developer'
+      };
+
+      /* ---- language switcher ---- */
+      var typingTimer=null;
+      function startTyping(list){
+        var typedEl=document.getElementById('typed');
+        if(!typedEl) return;
+        if(typingTimer) clearTimeout(typingTimer);
+        var ri=0,ci=0,del=false;
+        (function type(){
+          var word=list[ri];
+          typedEl.textContent=word.slice(0,ci);
+          if(!del && ci<word.length){ ci++; typingTimer=setTimeout(type,90); }
+          else if(del && ci>0){ ci--; typingTimer=setTimeout(type,45); }
+          else { if(!del){ del=true; typingTimer=setTimeout(type,1400); } else { del=false; ri=(ri+1)%list.length; typingTimer=setTimeout(type,300); } }
+        })();
+      }
+      function applyLang(lang){
+        if(lang!=='en') lang='ru';
+        document.documentElement.setAttribute('lang',lang);
+        document.title=TITLES[lang];
+        document.querySelectorAll('.lang-btn').forEach(function(b){
+          b.classList.toggle('active', b.getAttribute('data-lang')===lang);
+        });
+        startTyping(ROLES[lang]);
+        try{ localStorage.setItem('lang',lang); }catch(e){}
+      }
+      document.querySelectorAll('.lang-btn').forEach(function(b){
+        b.addEventListener('click',function(){ applyLang(b.getAttribute('data-lang')); });
+      });
+      var saved='ru';
+      try{ saved=localStorage.getItem('lang')||'ru'; }catch(e){}
+      applyLang(saved);
+
+      /* ---- menu ---- */
+      try{
+        var sidebar=document.getElementById('sidebar');
+        var burger=document.getElementById('burger');
+        var overlay=document.getElementById('overlay');
+        function toggleMenu(open){ sidebar.classList.toggle('open',open); overlay.classList.toggle('show',open); }
+        burger.addEventListener('click',function(){ toggleMenu(!sidebar.classList.contains('open')); });
+        overlay.addEventListener('click',function(){ toggleMenu(false); });
+        document.querySelectorAll('#menu a').forEach(function(a){
+          a.addEventListener('click',function(){ if(window.innerWidth<1280) toggleMenu(false); });
+        });
+      }catch(err){ console.error('menu:',err); }
+
+      /* ---- reveal ---- */
+      try{
+        if('IntersectionObserver' in window){
+          var io=new IntersectionObserver(function(es){
+            es.forEach(function(e){
+              if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+            });
+          },{threshold:.15});
+          document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+        } else { window.__forceShowReveals(); }
+      }catch(err){ console.error('reveal:',err); window.__forceShowReveals(); }
+
+      /* ---- scrollspy ---- */
+      try{
+        var secs=[].slice.call(document.querySelectorAll('section[id]'));
+        var links=[].slice.call(document.querySelectorAll('#menu a'));
+        function spy(){
+          if(!secs.length) return;
+          var cur=secs[0].id, y=window.scrollY+160;
+          secs.forEach(function(s){ if(y>=s.offsetTop) cur=s.id; });
+          links.forEach(function(l){ l.classList.toggle('active', l.getAttribute('href')==='#'+cur); });
+        }
+        window.addEventListener('scroll',spy); spy();
+      }catch(err){ console.error('scrollspy:',err); }
+
+      /* ---- modal ---- */
+      try{
+        var ov=document.getElementById('modalOverlay');
+        var mShot=document.getElementById('modalShot');
+        var mContent=document.getElementById('modalContent');
+        var mClose=document.getElementById('modalClose');
+        var lastFocus=null;
+
+        function openCase(card){
+          var detail=card.querySelector('.case-detail');
+          var shot=card.querySelector('.shot');
+          if(!detail) return;
+          lastFocus=document.activeElement;
+          mShot.innerHTML = shot ? shot.innerHTML : '';
+          mContent.innerHTML = detail.innerHTML;
+          mShot.scrollTop=0; mContent.parentElement.scrollTop=0;
+          ov.classList.add('show'); ov.setAttribute('aria-hidden','false');
+          document.body.classList.add('modal-open');
+          mClose.focus();
+        }
+        function closeCase(){
+          ov.classList.remove('show'); ov.setAttribute('aria-hidden','true');
+          document.body.classList.remove('modal-open');
+          if(lastFocus && lastFocus.focus) lastFocus.focus();
+        }
+
+        document.querySelectorAll('[data-case]').forEach(function(card){
+          card.addEventListener('click',function(){ openCase(card); });
+        });
+        mClose.addEventListener('click',closeCase);
+        ov.addEventListener('click',function(e){ if(e.target===ov) closeCase(); });
+        document.addEventListener('keydown',function(e){ if(e.key==='Escape' && ov.classList.contains('show')) closeCase(); });
+      }catch(err){ console.error('modal:',err); }
+    })();
+  </script>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
