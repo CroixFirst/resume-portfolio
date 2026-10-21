@@ -3,4 +3,4 @@ dist/
 garbage/
 .DS_Store
 .vercel/
-*.tsbuildinfo
+*.tsbuildinfo.vscode/
